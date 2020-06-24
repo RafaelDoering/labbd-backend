@@ -14,7 +14,7 @@ module.exports.login = async (req, res) => {
       return res.status(401).json();
     }
     user = {
-      id: 0,
+      id: 9999999,
       departamento: 'Admin',
     };
   } else {
@@ -32,6 +32,9 @@ module.exports.login = async (req, res) => {
       return res.status(401).json();
     }
   }
+
+  const query = 'INSERT INTO logs(id_func, reg_hora) VALUES ($1, $2)';
+  await pool.query(query, [user.id, new Date()]);
 
   const token = jwt.sign({
     data: { id: user.id, departamento: user.departamento },
