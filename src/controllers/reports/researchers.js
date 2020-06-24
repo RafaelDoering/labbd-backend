@@ -6,32 +6,55 @@ module.exports.researchers = async (req, res) => {
     offset,
   } = req.query;
 
-  const queryResponse = await pool.query(`
-    select pessoa.nome, funcionario.registro_institucional, funcionario.data_contratacao, id_amostra, amostra.data, resultado
+  const filter = JSON.parse(req.query.filter).q;
+
+  let query = `
+    select
+      row_number() over () as id, pessoa.nome as nome_do_pesquisador, funcionario.registro_institucional as registro_institucional, funcionario.data_contratacao as data_de_contratacao,
+      id_amostra as identificador_da_amostra, amostra.data as data_da_amostra, resultado as resultado_da_amostra
     from pesquisador
     inner join funcionario
     on id_pesquisador = id_funcionario
     inner join amostra
     on pesquisador.id_pesquisador = amostra.id_pesquisador,
     pessoa
-    where(pessoa.id_pessoa = pesquisador.id_pesquisador)
-    group by (pessoa.nome, registro_institucional, data_contratacao, id_amostra, amostra.data, resultado)
-    LIMIT $1
-    OFFSET $2;
-  `, [limit, offset]);
+    where pessoa.id_pessoa = pesquisador.id_pesquisador
+  `;
+  if (filter) {
+    query += `and lower(pessoa.nome) like lower('%${filter}%') `;
+  }
+  query += 'group by (pessoa.nome, registro_institucional, data_contratacao, id_amostra, amostra.data, resultado) ';
+  if (limit) {
+    query += `LIMIT ${limit} `;
+  }
+  if (offset) {
+    query += `OFFSET ${offset} `;
+  }
+  query += ';';
+
+  const queryResponse = await pool.query(query);
   const researchers = queryResponse.rows;
 
-  const queryTotalResponse = await pool.query(`
-    SELECT count(*)
+  let queryTotal = `
+    select count(*) from
+    (select
+      pessoa.nome as nome_do_pesquisador, funcionario.registro_institucional as registro_institucional, funcionario.data_contratacao as data_de_contratacao,
+      id_amostra as identificador_da_amostra, amostra.data as data_da_amostra, resultado as resultado_da_amostra
     from pesquisador
     inner join funcionario
     on id_pesquisador = id_funcionario
     inner join amostra
     on pesquisador.id_pesquisador = amostra.id_pesquisador,
     pessoa
-    where(pessoa.id_pessoa = pesquisador.id_pesquisador)
-    group by (pessoa.nome, registro_institucional, data_contratacao, id_amostra, amostra.data, resultado);
-  `);
+    where pessoa.id_pessoa = pesquisador.id_pesquisador
+  `;
+  if (filter) {
+    queryTotal += `and lower(pessoa.nome) like lower('%${filter}%') `;
+  }
+  queryTotal += 'group by (pessoa.nome, registro_institucional, data_contratacao, id_amostra, amostra.data, resultado) ';
+  queryTotal += ') as tb1;';
+
+  const queryTotalResponse = await pool.query(queryTotal);
 
   return res.status(200).json({
     data: researchers,

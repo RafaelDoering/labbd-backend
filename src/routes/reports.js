@@ -9,11 +9,11 @@ const ResearchersController = require('../controllers/reports/researchers');
 
 const router = Router();
 
-router.get('/patients', PatientsController.patients);
-router.get('/hospitals', HospitalsController.hospitals);
+router.get('/pacientes', PatientsController.patients);
+router.get('/hospitais', HospitalsController.hospitals);
 router.get('/treatments', TreatmentsController.treatments);
 router.get('/samples', SamplesController.samples);
 router.get('/laboratories', LaboratoriesController.laboratories);
-router.get('/researchers', ResearchersController.researchers);
+router.get('/pesquisadores', ResearchersController.researchers);
 
 module.exports = router;
