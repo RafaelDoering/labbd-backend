@@ -11,8 +11,8 @@ const router = Router();
 
 router.get('/pacientes', PatientsController.patients);
 router.get('/hospitais', HospitalsController.hospitals);
-router.get('/treatments', TreatmentsController.treatments);
-router.get('/samples', SamplesController.samples);
+router.get('/atendimentos', TreatmentsController.treatments);
+router.get('/amostras', SamplesController.samples);
 router.get('/laboratorios', LaboratoriesController.laboratories);
 router.get('/pesquisadores', ResearchersController.researchers);
 
